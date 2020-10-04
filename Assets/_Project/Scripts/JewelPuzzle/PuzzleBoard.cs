@@ -63,8 +63,17 @@ namespace AntonioHR.JewelPuzzle
 
         public bool CheckForMatches(out Piece[] toBreak)
         {
-            toBreak = null;
-            return false;
+            List<Piece> result = new List<Piece>();
+            currentMatches.Clear();
+            for (int y = 0; y < pieces.GetLength(1); y++)
+            {
+                for (int x = 0; x < pieces.GetLength(0); x++)
+                {
+                    CheckForMatchesAt(x,y);
+                }
+            }
+            toBreak = currentMatches.ToArray();
+            return toBreak.Length > 0;
         }
 
         public IEnumerable<PieceColor> AvailableColorsAt(int x, int y)
@@ -88,9 +97,42 @@ namespace AntonioHR.JewelPuzzle
         }
 
         #region Private Functions
+        private void CheckForMatchesAt(int x, int y )
+        {
+            PieceColor color = pieces[x, y].Color;
+
+            if(GetPieceSafe(x-1, y)?.Color == color
+            && GetPieceSafe(x-2, y)?.Color == color)
+            {
+                currentMatches.Add(GetPieceSafe(x, y));
+                currentMatches.Add(GetPieceSafe(x-1, y));
+                currentMatches.Add(GetPieceSafe(x-2, y));
+            }
+            if(GetPieceSafe(x+1, y)?.Color == color
+            && GetPieceSafe(x+2, y)?.Color == color)
+            {
+                currentMatches.Add(GetPieceSafe(x, y));
+                currentMatches.Add(GetPieceSafe(x+1, y));
+                currentMatches.Add(GetPieceSafe(x+2, y));
+            }
+            if(GetPieceSafe(x, y-1)?.Color == color
+            && GetPieceSafe(x, y-2)?.Color == color)
+            {
+                currentMatches.Add(GetPieceSafe(x, y));
+                currentMatches.Add(GetPieceSafe(x, y-1));
+                currentMatches.Add(GetPieceSafe(x, y-2));
+            }
+            if(GetPieceSafe(x, y+1)?.Color == color
+            && GetPieceSafe(x, y+2)?.Color == color)
+            {
+                currentMatches.Add(GetPieceSafe(x, y));
+                currentMatches.Add(GetPieceSafe(x, y+1));
+                currentMatches.Add(GetPieceSafe(x, y+2));
+            }
+        }
         private bool HasMatchPotentialFor(PieceColor color, int x, int y)
         {
-             bool hasMatchLeft = GetPieceSafe(x-1, y)?.Color == color
+            bool hasMatchLeft = GetPieceSafe(x-1, y)?.Color == color
                                         && GetPieceSafe(x-2, y)?.Color == color;
                                         
             bool hasMatchUp = GetPieceSafe(x, y-1)?.Color == color
@@ -111,6 +153,8 @@ namespace AntonioHR.JewelPuzzle
         #region Private Variables
         private Piece[,] pieces;
         private UIGrid grid;
+
+        private HashSet<Piece> currentMatches = new HashSet<Piece>();
 
         #endregion
     }

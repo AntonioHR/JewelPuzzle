@@ -9,7 +9,8 @@ namespace AntonioHR.JewelPuzzle
     public class PuzzleRunner : MonoBehaviour
     {
         //Inspector Variables
-        [SerializeField] private float pieceMoveTime = .5f;
+        [SerializeField] private float pieceMoveTime = .25f;
+        [SerializeField] private float pieceBreakTime = .25f;
 
         //Public Properties
 
@@ -49,14 +50,28 @@ namespace AntonioHR.JewelPuzzle
             if(board.CheckForMatches(out toBreak))
             {
                 //Run Turn
+                StartCoroutine(BreakAndFall(toBreak));
             } else
             {
                 board.Switch(from, to);
                 StartCoroutine(MovePieceTo(from, from.Position.Value, pieceMoveTime));
                 StartCoroutine(MovePieceTo(to, to.Position.Value, pieceMoveTime));
+                isBusy = false;
             }
+        }
+
+        private IEnumerator BreakAndFall(Piece[] toBreak)
+        {
+            foreach (var piece in toBreak)
+            {
+                board.Detach(piece);
+
+                StartCoroutine(piece.transform.PerformScale(Vector3.zero, pieceBreakTime));
+            }
+            yield return new WaitForSeconds(pieceBreakTime);
             isBusy = false;
         }
+
         //This would be much easier with tweening, but... oh well
         private IEnumerator MovePieceTo(Piece piece, Vector2Int boardPos, float time)
         {

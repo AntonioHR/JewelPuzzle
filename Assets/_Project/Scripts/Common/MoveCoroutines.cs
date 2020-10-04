@@ -26,5 +26,24 @@ namespace AntonioHR.Common
             me.transform.position = endPosition;
         }
 
+        public static IEnumerator PerformScale(this Transform me, Vector3 endScale, float duration)
+        {
+            Vector3 startScale = me.transform.localScale;
+
+            float startTime = Time.time;
+            float elapsed = 0;
+
+            while (true)
+            {
+                elapsed = Time.time - startTime;
+
+                me.transform.localScale = Vector3.Lerp(startScale, endScale, elapsed/duration);
+                if(elapsed >= duration)
+                    break;
+                yield return null;
+            }
+            me.transform.localScale = endScale;
+        }
+
     }
 }
