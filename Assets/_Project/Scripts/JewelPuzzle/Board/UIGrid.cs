@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,14 +7,22 @@ using UnityEngine.UI;
 namespace AntonioHR.JewelPuzzle
 {
     [RequireComponent(typeof(GridLayoutGroup))]
-    public class PuzzleGrid: MonoBehaviour
+    public class UIGrid: MonoBehaviour
     {
         //Inspector Variables
-        [SerializeField] Vector2Int size = new Vector2Int(9,9);
+        public Vector2Int size = new Vector2Int(9,9);
         
         //Public Properties
         
         //Public Functions
+        public RectTransform GetSlot(int x, int y)
+        {
+            return slots[x, y];
+        }
+        public RectTransform GetSlot(Vector2Int pos)
+        {
+            return slots[pos.x, pos.y];
+        }
         
         //Unity Messages
         private void Awake()
@@ -30,7 +39,6 @@ namespace AntonioHR.JewelPuzzle
             gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             gridLayout.constraintCount = size.x;
         }
-
         private void SetupSlots()
         {
             slots = new RectTransform[size.x, size.y];
