@@ -13,8 +13,18 @@ namespace AntonioHR.JewelPuzzle
         [SerializeField] Image img;
         //Public Properties
         public PieceColor Color { get; private set; }
+        public Vector2Int? Position{get; set;}
+
+        public bool IsOnBoard=>Position != null;
 
         //Public Functions
+        public bool IsAdjacentTo(Piece other)
+        {
+            if(!IsOnBoard ||!other.IsOnBoard)
+                return false;
+
+            return Vector2.Distance(Position.Value, other.Position.Value) == 1;
+        }
 
         //Unity Messages
         private void Start()
