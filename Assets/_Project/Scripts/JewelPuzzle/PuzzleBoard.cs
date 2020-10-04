@@ -33,6 +33,7 @@ namespace AntonioHR.JewelPuzzle
         
         public void StartSwitch(Piece from, Piece to)
         {
+            Debug.Assert(!IsBusy);
             StartCoroutine(SwitchCoroutine(from, to));
         }
         public Piece GetPieceSafe(int x, int y)

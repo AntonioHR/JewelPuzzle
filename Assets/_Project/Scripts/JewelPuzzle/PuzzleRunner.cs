@@ -9,6 +9,7 @@ namespace AntonioHR.JewelPuzzle
     public class PuzzleRunner : MonoBehaviour
     {
         //Inspector Variables
+        [SerializeField] Transform cursor;
 
         //Public Properties
 
@@ -20,6 +21,38 @@ namespace AntonioHR.JewelPuzzle
             board = FindObjectOfType<PuzzleBoard>();
             input = FindObjectOfType<PuzzleInput>();
             input.Dragged+=OnDrag;
+            input.ClickedOnPiece += ClickedOnPiece;
+            input.ClickedEmpty += Deselect;
+            Deselect();
+        }
+
+        private void Deselect()
+        {
+            cursor.gameObject.SetActive(false);
+            selected = null;
+        }
+
+        private void ClickedOnPiece(Piece piece)
+        {
+            if(board.IsBusy)
+                return;
+
+            if(selected == null)
+            {
+                cursor.gameObject.SetActive(true);
+                cursor.gameObject.transform.position = piece.transform.position;
+                selected = piece;
+            } else 
+            {
+                if(selected == piece)
+                {
+                    Deselect();
+                } else
+                {
+                    OnDrag(selected, piece);
+                }
+            }
+
         }
 
         private void OnDrag(Piece from, Piece to)
@@ -32,6 +65,7 @@ namespace AntonioHR.JewelPuzzle
 
                 board.StartSwitch(from, to);
             }
+            Deselect();
         }
 
         #region Private Functions
@@ -43,6 +77,7 @@ namespace AntonioHR.JewelPuzzle
         #region Private Variables
         private PuzzleBoard board;
         private PuzzleInput input;
+        private Piece selected;
 
         #endregion
     }
