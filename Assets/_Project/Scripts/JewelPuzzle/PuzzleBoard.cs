@@ -92,7 +92,7 @@ namespace AntonioHR.JewelPuzzle
             {
                 Detach(piece);
 
-                StartCoroutine(piece.transform.PerformScale(Vector3.zero, pieceBreakTime));
+                StartCoroutine(piece.transform.ScaleCoroutine(Vector3.zero, pieceBreakTime));
             }
 
             yield return new WaitForSeconds(pieceBreakTime);
@@ -123,7 +123,7 @@ namespace AntonioHR.JewelPuzzle
                         
                         int fall = gap.y - y;
                         maxFall = Mathf.Max(fall, maxFall);
-                        StartCoroutine(piece.transform.PerformMove(grid.GetSlot(gap.x,gap.y).transform.position, GetFallTime(fall)));
+                        StartCoroutine(piece.transform.MoveCoroutine(grid.GetSlot(gap.x,gap.y).transform.position, GetFallTime(fall)));
                     }
                 }
                 foreach (var gap in gaps)
@@ -141,7 +141,7 @@ namespace AntonioHR.JewelPuzzle
                 piece.gameObject.SetActive(true);
                 Vector3 scale = piece.transform.localScale;
                 piece.transform.localScale = Vector3.zero;
-                StartCoroutine(piece.transform.PerformScale(scale, pieceBreakTime));
+                StartCoroutine(piece.transform.ScaleCoroutine(scale, pieceBreakTime));
             }
 
             yield return new WaitForSeconds(pieceBreakTime);
@@ -165,7 +165,7 @@ namespace AntonioHR.JewelPuzzle
         {
             movingPieces++;
             Vector3 worldEnd = grid.GetSlot(boardPos).position;
-            yield return piece.transform.PerformMove(worldEnd, time);
+            yield return piece.transform.MoveCoroutine(worldEnd, time);
             movingPieces--;
         }
 

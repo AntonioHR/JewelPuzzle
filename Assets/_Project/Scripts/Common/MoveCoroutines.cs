@@ -7,7 +7,7 @@ namespace AntonioHR.Common
     public static class MoveCoroutines
     {
 
-        public static IEnumerator PerformMove(this Transform me, Vector3 endPosition, float duration)
+        public static IEnumerator MoveCoroutine(this Transform me, Vector3 endPosition, float duration)
         {
             Vector3 worldStart = me.transform.position;
 
@@ -26,7 +26,7 @@ namespace AntonioHR.Common
             me.transform.position = endPosition;
         }
 
-        public static IEnumerator PerformScale(this Transform me, Vector3 endScale, float duration)
+        public static IEnumerator ScaleCoroutine(this Transform me, Vector3 endScale, float duration)
         {
             Vector3 startScale = me.transform.localScale;
 
