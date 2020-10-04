@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AntonioHR.Common;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace AntonioHR.JewelPuzzle
 {
@@ -13,6 +12,8 @@ namespace AntonioHR.JewelPuzzle
     {
         //Inspector Variables
         [SerializeField] private float pieceMoveTime = .25f;
+        [SerializeField] private float pieceFallMin = .25f;
+        [SerializeField] private float pieceFallScaling = .1f;
         [SerializeField] private float pieceBreakTime = .25f;
         [SerializeField] Vector2Int size = new Vector2Int(9,9);
         
@@ -47,6 +48,11 @@ namespace AntonioHR.JewelPuzzle
         {
             pieces = new Piece[size.x, size.y];
             grid = GetComponent<UIGrid>();
+            canvas = GetComponentInParent<Canvas>();
+        }
+        private void Start()
+        {
+            
             BuildStartingBoard();
         }
 
@@ -67,9 +73,7 @@ namespace AntonioHR.JewelPuzzle
             if(CheckForMatches())
             {
                 //Run Turn
-                var toBreak = currentMatches.ToArray();
-                currentMatches.Clear();
-                StartCoroutine(BreakAndFallCoroutine(toBreak));
+                StartCoroutine(BreakAndFallCoroutine());
             } else
             {
                 Switch(from, to);
@@ -79,8 +83,10 @@ namespace AntonioHR.JewelPuzzle
             }
         }
 
-        private IEnumerator BreakAndFallCoroutine(Piece[] toBreak)
+        private IEnumerator BreakAndFallCoroutine()
         {
+            var toBreak = currentMatches.ToArray();
+            currentMatches.Clear();
             foreach (var piece in toBreak)
             {
                 Detach(piece);
@@ -90,8 +96,67 @@ namespace AntonioHR.JewelPuzzle
 
             yield return new WaitForSeconds(pieceBreakTime);
 
-            // PerformFallAndSpawn();
-            IsBusy = false;
+            List<Piece> spawned = new List<Piece>();
+            int maxFall = 0;
+
+            Queue<Vector2Int> gaps = new Queue<Vector2Int>();
+            //for each column
+            for (int x = 0; x < pieces.GetLength(0); x++)
+            {
+                //Make Pieces Drop
+                for (int y = pieces.GetLength(1)-1; y >= 0; y--)
+                {
+                    var piece = pieces[x,y];
+                    if(piece == null)
+                    {
+                        gaps.Enqueue(new Vector2Int(x,y));
+                    } else if(gaps.Any())
+                    {
+                        Vector2Int gap = gaps.First();
+                        gaps.Dequeue();
+
+                        DetachAt(x,y);
+                        gaps.Enqueue(new Vector2Int(x,y));
+
+                        Attach(piece, gap.x,gap.y);
+                        
+                        int fall = gap.y - y;
+                        maxFall = Mathf.Max(fall, maxFall);
+                        StartCoroutine(piece.transform.PerformMove(grid.GetSlot(gap.x,gap.y).transform.position, GetFallTime(fall)));
+                    }
+                }
+                foreach (var gap in gaps)
+                {
+                    var piece = SpawnPiece(pieceColors.RandomItem(), gap.x, gap.y);
+                    spawned.Add(piece);
+                    piece.gameObject.SetActive(false);
+                }
+                gaps.Clear();
+            }
+            yield return new WaitForSeconds(GetFallTime(maxFall));
+
+            foreach (var piece in spawned)
+            {
+                piece.gameObject.SetActive(true);
+                Vector3 scale = piece.transform.localScale;
+                piece.transform.localScale = Vector3.zero;
+                StartCoroutine(piece.transform.PerformScale(scale, pieceBreakTime));
+            }
+
+            yield return new WaitForSeconds(pieceBreakTime);
+
+            if(CheckForMatches())
+            {
+                StartCoroutine(BreakAndFallCoroutine());
+            } else
+            {
+                IsBusy = false;
+            }
+        }
+
+        private float GetFallTime(int fall)
+        {
+            return pieceFallMin + pieceFallScaling * fall;
         }
 
         //This would be much easier with tweening, but... oh well
@@ -148,7 +213,6 @@ namespace AntonioHR.JewelPuzzle
         private void BuildStartingBoard()
         {
             Vector2Int size = Size;
-            Canvas canvas = GetComponentInParent<Canvas>();
             for (int row = 0; row < size.y; row++)
             {
                 for (int col = 0; col < size.x; col++)
@@ -156,14 +220,18 @@ namespace AntonioHR.JewelPuzzle
                     //We'll check right and down even though it must have no pieces yet, as this code is easier to understand than that would be
                     var options = AvailableColorsAt(col, row);
                     PieceColor color =  options.RandomItem();
-
-                    //spawn inside the board canvas so there's no problem with canvas scaling
-                    Piece piece = Instantiate(piecePrefab, canvas.transform);
-                    piece.Initialize(color);
-
-                    Attach(piece, col, row, alsoPlaceInPosition:true);
+                    SpawnPiece(color, col, row);
                 }
             }
+        }
+        private Piece SpawnPiece(PieceColor color, int x, int y)
+        {
+            //spawn inside the board canvas so there's no problem with canvas scaling
+            Piece piece = Instantiate(piecePrefab, canvas.transform);
+            piece.Initialize(color);
+
+            Attach(piece, x, y, alsoPlaceInPosition:true);
+            return piece;
         }
         private IEnumerable<PieceColor> AvailableColorsAt(int x, int y)
         {
@@ -242,6 +310,7 @@ namespace AntonioHR.JewelPuzzle
 
         private HashSet<Piece> currentMatches = new HashSet<Piece>();
         private int movingPieces;
+        private Canvas canvas;
 
         #endregion
     }
